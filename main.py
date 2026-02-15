@@ -59,9 +59,12 @@ def chatbot(request: dict):
             "cacheKey": key
         }
 
-    # Cache miss
-    answer = f"This is AI answer for: {query}"
-    cache[key] = answer
+    # Cache miss (simulate slow AI)
+time.sleep(0.2)   # 200ms delay
+
+answer = f"This is AI answer for: {query}"
+cache[key] = answer
+
 
     latency = max(1, int((time.time() - start) * 1000))
 
