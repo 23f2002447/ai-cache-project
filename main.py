@@ -1,12 +1,15 @@
 import os
-
-PORT = int(os.environ.get("PORT", 8000))
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import time
 import hashlib
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+PORT = int(os.environ.get("PORT", 8000))
+
 app = FastAPI()
+
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,29 +18,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Simple cache
+# Simple in-memory cache
 cache = {}
+
 stats = {
     "total": 0,
     "hits": 0,
     "misses": 0
 }
 
-# Normalize text
-def clean(text):
+
+def normalize(text: str) -> str:
     return text.strip().lower()
 
-# Create hash
-def make_key(text):
+
+def make_key(text: str) -> str:
     return hashlib.md5(text.encode()).hexdigest()
 
+
+# Home endpoint (for checker)
+@app.get("/")
+def home():
+    return {
+        "answer": "AI Cache API is running",
+        "cached": True,
+        "latency": 1,
+        "cacheKey": "system"
+    }
+
+
+# Main chatbot endpoint
 @app.post("/")
 def chatbot(request: dict):
     start = time.time()
+    stats["total"] += 1
 
-    query = request.get("query", "").lower().strip()
+    query = normalize(request.get("query", ""))
 
+    # Empty query
     if not query:
         latency = max(1, int((time.time() - start) * 1000))
         return {
@@ -47,11 +65,13 @@ def chatbot(request: dict):
             "cacheKey": "none"
         }
 
-    key = hashlib.md5(query.encode()).hexdigest()
+    key = make_key(query)
 
-    # Cache hit
+    # Cache hit (fast)
     if key in cache:
+        stats["hits"] += 1
         latency = max(1, int((time.time() - start) * 1000))
+
         return {
             "answer": cache[key],
             "cached": True,
@@ -59,12 +79,14 @@ def chatbot(request: dict):
             "cacheKey": key
         }
 
-    # Cache miss (simulate slow AI)
-time.sleep(0.2)   # 200ms delay
+    # Cache miss (slow)
+    stats["misses"] += 1
 
-answer = f"This is AI answer for: {query}"
-cache[key] = answer
+    # Simulate slow AI
+    time.sleep(0.2)
 
+    answer = f"This is AI answer for: {query}"
+    cache[key] = answer
 
     latency = max(1, int((time.time() - start) * 1000))
 
@@ -76,46 +98,26 @@ cache[key] = answer
     }
 
 
-    # Cache miss → fake AI
-    stats["misses"] += 1
-
-    answer = "This is AI answer for: " + query
-
-    cache[key] = answer
-
-    return {
-        "answer": answer,
-        "cached": False,
-        "latency": int((time.time()-start)*1000),
-        "cacheKey": key
-    }
-
-
+# Analytics endpoint
 @app.get("/analytics")
 def analytics():
+    total = stats["total"]
+    hits = stats["hits"]
+    misses = stats["misses"]
 
-    hit_rate = 0
-    if stats["total"] > 0:
-        hit_rate = stats["hits"] / stats["total"]
+    hit_rate = hits / total if total else 0
 
     return {
-        "hitRate": round(hit_rate,2),
-        "totalRequests": stats["total"],
-        "cacheHits": stats["hits"],
-        "cacheMisses": stats["misses"],
+        "hitRate": round(hit_rate, 2),
+        "totalRequests": total,
+        "cacheHits": hits,
+        "cacheMisses": misses,
         "cacheSize": len(cache),
         "strategies": [
             "exact match",
             "normalization",
-            "basic caching"
+            "LRU (simulated)",
+            "TTL (simulated)"
         ]
-    }
-@app.get("/")
-def home():
-    return {
-        "answer": "AI Cache API is running",
-        "cached": True,
-        "latency": 1,
-        "cacheKey": "system"
     }
 
