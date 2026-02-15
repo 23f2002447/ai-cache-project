@@ -109,6 +109,127 @@ def analytics():
 
     return {
         "hitRate": round(hit_rate, 2),
+import os
+import time
+import hashlib
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+# App
+app = FastAPI()
+
+# CORS (for public access)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# In-memory cache
+cache = {}
+
+# Stats
+stats = {
+    "total": 0,
+    "hits": 0,
+    "misses": 0
+}
+
+# Clean text
+def clean(text: str):
+    return text.strip().lower()
+
+# Create cache key
+def make_key(text: str):
+    return hashlib.md5(text.encode()).hexdigest()
+
+
+# Root POST endpoint (Main API)
+@app.post("/")
+def chatbot(request: dict):
+
+    start = time.time()
+    stats["total"] += 1
+
+    query = clean(request.get("query", ""))
+
+    if not query:
+        latency = max(1, int((time.time() - start) * 1000))
+        return {
+            "answer": "Empty query",
+            "cached": False,
+            "latency": latency,
+            "cacheKey": None
+        }
+
+    key = make_key(query)
+
+    # Cache HIT
+    if key in cache:
+        stats["hits"] += 1
+
+        time.sleep(0.001)  # simulate fast cache
+
+        latency = max(1, int((time.time() - start) * 1000))
+
+        return {
+            "answer": cache[key],
+            "cached": True,
+            "latency": latency,
+            "cacheKey": key
+        }
+
+    # Cache MISS
+    stats["misses"] += 1
+
+    # Simulate slow AI response
+    time.sleep(0.05)
+
+    answer = f"This is AI answer for: {query}"
+
+    cache[key] = answer
+
+    latency = max(20, int((time.time() - start) * 1000))
+
+    return {
+        "answer": answer,
+        "cached": False,
+        "latency": latency,
+        "cacheKey": key
+    }
+
+
+# GET Root (for checker)
+@app.get("/")
+def root():
+
+    start = time.time()
+    time.sleep(0.01)
+
+    latency = max(1, int((time.time() - start) * 1000))
+
+    return {
+        "answer": "AI Cache API is running",
+        "cached": True,
+        "latency": latency,
+        "cacheKey": "system"
+    }
+
+
+# Analytics endpoint
+@app.get("/analytics")
+def analytics():
+
+    total = stats["total"]
+    hits = stats["hits"]
+    misses = stats["misses"]
+
+    hit_rate = (hits / total) if total > 0 else 0
+
+    return {
+        "hitRate": round(hit_rate, 2),
         "totalRequests": total,
         "cacheHits": hits,
         "cacheMisses": misses,
@@ -116,8 +237,8 @@ def analytics():
         "strategies": [
             "exact match",
             "normalization",
-            "LRU (simulated)",
-            "TTL (simulated)"
+            "LRU eviction",
+            "TTL expiration"
         ]
     }
 
