@@ -121,16 +121,17 @@ def analytics():
     hit_rate = hits / total if total > 0 else 0
 
     return {
-        "hitRate": round(hit_rate, 2),
-        "totalRequests": total,
-        "cacheHits": hits,
-        "cacheMisses": misses,
-        "cacheSize": len(cache),
-        "strategies": [
-            "exact match",
-            "normalization",
-            "LRU eviction",
-            "TTL expiration"
-        ]
-    }
+    "answer": "Cache analytics data",
+    "hitRate": round(hit_rate, 2),
+    "totalRequests": total,
+    "cacheHits": hits,
+    "cacheMisses": misses,
+    "cacheSize": len(cache),
+    "strategies": [
+        "exact match",
+        "normalization",
+        "LRU eviction",
+        "TTL expiration"
+    ]
+}
 
