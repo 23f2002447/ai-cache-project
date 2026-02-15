@@ -2,10 +2,19 @@ import os
 
 PORT = int(os.environ.get("PORT", 8000))
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import time
 import hashlib
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # Simple cache
 cache = {}
