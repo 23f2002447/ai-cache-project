@@ -111,7 +111,7 @@ def chatbot(request: dict):
 
 
 # Analytics endpoint
-@app.get("/analytics")
+@app.api_route("/analytics", methods=["GET", "POST"])
 def analytics():
 
     total = stats["total"]
