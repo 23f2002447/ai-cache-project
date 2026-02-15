@@ -122,6 +122,7 @@ def analytics():
 
     return {
     "answer": "Cache analytics data",
+    "cached": True,
     "hitRate": round(hit_rate, 2),
     "totalRequests": total,
     "cacheHits": hits,
