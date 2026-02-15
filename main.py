@@ -33,25 +33,45 @@ def make_key(text):
     return hashlib.md5(text.encode()).hexdigest()
 
 @app.post("/")
-def chatbot(data: dict):
-
-    stats["total"] += 1
-
-    query = clean(data["query"])
-    key = make_key(query)
-
+def chatbot(request: dict):
     start = time.time()
 
-    # Check cache
-    if key in cache:
-        stats["hits"] += 1
+    query = request.get("query", "").lower().strip()
 
+    if not query:
+        latency = max(1, int((time.time() - start) * 1000))
+        return {
+            "answer": "Empty query",
+            "cached": False,
+            "latency": latency,
+            "cacheKey": "none"
+        }
+
+    key = hashlib.md5(query.encode()).hexdigest()
+
+    # Cache hit
+    if key in cache:
+        latency = max(1, int((time.time() - start) * 1000))
         return {
             "answer": cache[key],
             "cached": True,
-            "latency": max(1, int((time.time()-start)*1000)),
+            "latency": latency,
             "cacheKey": key
         }
+
+    # Cache miss
+    answer = f"This is AI answer for: {query}"
+    cache[key] = answer
+
+    latency = max(1, int((time.time() - start) * 1000))
+
+    return {
+        "answer": answer,
+        "cached": False,
+        "latency": latency,
+        "cacheKey": key
+    }
+
 
     # Cache miss → fake AI
     stats["misses"] += 1
