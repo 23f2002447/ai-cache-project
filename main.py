@@ -36,7 +36,7 @@ def make_key(text: str):
     return hashlib.md5(text.encode()).hexdigest()
 
 
-# Home endpoint (for checker)
+# Root endpoint (for checker)
 @app.get("/")
 def home():
 
@@ -64,6 +64,7 @@ def chatbot(request: dict):
 
     # Empty query
     if not query:
+
         latency = max(1, int((time.time() - start) * 1000))
 
         return {
