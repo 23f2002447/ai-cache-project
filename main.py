@@ -78,3 +78,6 @@ def analytics():
             "basic caching"
         ]
     }
+@app.get("/")
+def home():
+    return {"status": "AI Cache API is running"}
