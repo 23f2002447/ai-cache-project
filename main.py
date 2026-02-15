@@ -89,4 +89,10 @@ def analytics():
     }
 @app.get("/")
 def home():
-    return {"status": "AI Cache API is running"}
+    return {
+        "answer": "AI Cache API is running",
+        "cached": True,
+        "latency": 1,
+        "cacheKey": "system"
+    }
+
