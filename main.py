@@ -111,7 +111,7 @@ def chatbot(request: dict):
 
 
 # Analytics endpoint
-@app.api_route("/analytics", methods=["GET", "POST"])
+@app.get("/analytics")
 def analytics():
 
     total = stats["total"]
@@ -120,19 +120,27 @@ def analytics():
 
     hit_rate = hits / total if total > 0 else 0
 
+    # Cost calculation (as per assignment)
+    model_cost = 0.60  # per 1M tokens
+
+    total_tokens = stats.get("total_tokens", 0)
+    cached_tokens = stats.get("cached_tokens", 0)
+
+    savings = (total_tokens - cached_tokens) * model_cost / 1_000_000
+
     return {
-    "answer": "Cache analytics data",
-    "cached": True,
-    "hitRate": round(hit_rate, 2),
-    "totalRequests": total,
-    "cacheHits": hits,
-    "cacheMisses": misses,
-    "cacheSize": len(cache),
-    "strategies": [
-        "exact match",
-        "normalization",
-        "LRU eviction",
-        "TTL expiration"
-    ]
-}
+        "hitRate": round(hit_rate, 2),
+        "totalRequests": total,
+        "cacheHits": hits,
+        "cacheMisses": misses,
+        "cacheSize": len(cache),
+        "costSavings": round(savings, 2),
+        "savingsPercent": int(hit_rate * 100),
+        "strategies": [
+            "exact match",
+            "semantic similarity",
+            "LRU eviction",
+            "TTL expiration"
+        ]
+    }
 
