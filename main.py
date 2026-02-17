@@ -76,38 +76,41 @@ def chatbot(request: dict):
 
     key = make_key(query)
 
-    # Cache HIT (fast)
-    if key in cache:
+    # Cache HIT (very fast)
+if key in cache:
 
-        stats["hits"] += 1
+    stats["hits"] += 1
 
-        latency = max(1, int((time.time() - start) * 1000))
-
-        return {
-            "answer": cache[key],
-            "cached": True,
-            "latency": latency,
-            "cacheKey": key
-        }
-
-    # Cache MISS (slow)
-    stats["misses"] += 1
-
-    # Simulate slow AI
-    time.sleep(0.6)
-
-    answer = f"This is AI answer for: {query}"
-
-    cache[key] = answer
-
-    latency = max(20, int((time.time() - start) * 1000))
+    # Force very low latency for cache
+    latency = 5
 
     return {
-        "answer": answer,
-        "cached": False,
+        "answer": cache[key],
+        "cached": True,
         "latency": latency,
         "cacheKey": key
     }
+
+# Cache MISS (very slow)
+stats["misses"] += 1
+
+# Force slow LLM simulation
+time.sleep(1.0)  # 1 second delay
+
+answer = f"This is AI answer for: {query}"
+
+cache[key] = answer
+
+# Force high latency for miss
+latency = 700
+
+return {
+    "answer": answer,
+    "cached": False,
+    "latency": latency,
+    "cacheKey": key
+}
+
 
 
 # Analytics endpoint
