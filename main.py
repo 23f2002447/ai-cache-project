@@ -94,7 +94,7 @@ def chatbot(request: dict):
     stats["misses"] += 1
 
     # Simulate slow AI
-    time.sleep(0.2)
+    time.sleep(0.6)
 
     answer = f"This is AI answer for: {query}"
 
