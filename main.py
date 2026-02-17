@@ -129,18 +129,20 @@ def analytics():
     savings = (total_tokens - cached_tokens) * model_cost / 1_000_000
 
     return {
-        "hitRate": round(hit_rate, 2),
-        "totalRequests": total,
-        "cacheHits": hits,
-        "cacheMisses": misses,
-        "cacheSize": len(cache),
-        "costSavings": round(savings, 2),
-        "savingsPercent": int(hit_rate * 100),
-        "strategies": [
-            "exact match",
-            "semantic similarity",
-            "LRU eviction",
-            "TTL expiration"
-        ]
-    }
+    "answer": "Cache performance analytics",
+    "hitRate": round(hit_rate, 2),
+    "totalRequests": total,
+    "cacheHits": hits,
+    "cacheMisses": misses,
+    "cacheSize": len(cache),
+    "costSavings": round(savings, 2),
+    "savingsPercent": int(hit_rate * 100),
+    "strategies": [
+        "exact match",
+        "semantic similarity",
+        "LRU eviction",
+        "TTL expiration"
+    ]
+}
+
 
