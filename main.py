@@ -130,6 +130,7 @@ def analytics():
 
     return {
     "answer": "Cache performance analytics",
+    "cached": False,
     "hitRate": round(hit_rate, 2),
     "totalRequests": total,
     "cacheHits": hits,
